@@ -9,18 +9,22 @@ namespace TestTaskUKAD
     {
         static void Main(string[] args)
         {
-            int urlCount = 1;
             Console.WriteLine("Enter your URL");
             string userURL = Console.ReadLine();
 
+            int urlCount = 1;
             CrawlURL crawl = new CrawlURL();
-            HashSet<string> listCrawl = crawl.GetCrawlURLs(userURL);
+            List<string> listCrawl = crawl.FindUrls(userURL);
+            Console.WriteLine("Urls FOUNDED BY CRAWLING THE WEBSITE");
+            Console.WriteLine(string.Join(Environment.NewLine, listCrawl.Select(a => $"{urlCount++}) {a}")));
 
+            urlCount = 1;
             SitemapURL sitemapURL = new SitemapURL();
             List<string> listSitemap = sitemapURL.GetSitemapURLs(userURL);
+            Console.WriteLine("Urls FOUNDED IN SITEMAP THE WEBSITE");
+            Console.WriteLine(string.Join(Environment.NewLine, listSitemap.Select(a => $"{urlCount++}) {a}")));
 
             ResponseTiming timing = new ResponseTiming();
-
             
             urlCount = 1;
             List<string> listUniqueCrawlURL = crawl.UniqueCrawlURL(listCrawl, listSitemap);
@@ -44,14 +48,14 @@ namespace TestTaskUKAD
             urlCount = 1;
             Console.WriteLine(Environment.NewLine);
             Console.WriteLine("Union URLs with response timing");
-            List<string> listUnionUrls = listUniqueSitemapURL.Union(listUniqueCrawlURL).ToList();
+            List<string> listUnionUrls = listCrawl.Union(listUniqueSitemapURL).ToList();
 
             timing.ResponseTime(listUnionUrls);
 
             Console.WriteLine(Environment.NewLine);
-            Console.Write("Urls(html documents) found after crawling a website: " + listUniqueCrawlURL.Count());
+            Console.Write("Urls(html documents) found after crawling a website: " + listCrawl.Count());
             Console.WriteLine(Environment.NewLine);
-            Console.Write("Urls found in sitemap: " + listUniqueSitemapURL.Count());
+            Console.Write("Urls found in sitemap: " + listSitemap.Count());
             Console.WriteLine(Environment.NewLine);
         }
     }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,30 +10,79 @@ namespace TestTaskUKAD
 {
     public class CrawlURL
     {
-        public HashSet<string> GetCrawlURLs(string userURL)
+        public List<string> FindUrls(string url)
         {
-            string URL = userURL;
+            var urls = new List<string>();
+            var visitedUrls = new HashSet<string>();
 
-            HashSet<string> listCrawl = new HashSet<string>();
-            var baseUri = new Uri(URL);
-            var web = new HtmlWeb();
-            var doc = web.Load(baseUri);
+            string urlUser = url;
 
-            foreach (var link in doc.DocumentNode.Descendants("a"))
-            {
-                var href = link.GetAttributeValue("href", "");
-                var uri = new Uri(baseUri, href);
+            Uri uri = new Uri(urlUser);
 
-                if (uri.Host == baseUri.Host && uri.Scheme == baseUri.Scheme)
-                {
-                    listCrawl.Add(uri.AbsoluteUri);
-                }
-            }
+            string homePage = $"{uri.Scheme}://{uri.Authority}";
 
-            return listCrawl;
+            FindUrlsRecursive(homePage, urls, visitedUrls);
+
+            return urls;
         }
 
-        public List<string> UniqueCrawlURL(HashSet<string> listCrawl, List<string> listSitemap)
+        private void FindUrlsRecursive(string url, List<string> urls, HashSet<string> visitedUrls)
+        {
+            if (visitedUrls.Contains(url)) return;
+
+            visitedUrls.Add(url);
+
+            try
+            {
+                var request = WebRequest.Create(url);
+                var response = request.GetResponse();
+                var stream = response.GetResponseStream();
+                var reader = new System.IO.StreamReader(stream);
+                var html = reader.ReadToEnd();
+
+                var matches = System.Text.RegularExpressions.Regex.Matches(html, @"<a.*?href=""(.*?)"".*?>");
+
+                foreach (System.Text.RegularExpressions.Match match in matches)
+                {
+                    var newUrl = match.Groups[1].Value;
+
+                    if (!string.IsNullOrEmpty(newUrl))
+                    {
+                        var uri = new Uri(new Uri(url), newUrl);
+                        newUrl = uri.AbsoluteUri;
+
+                        if (newUrl.StartsWith(url) && !visitedUrls.Contains(newUrl))
+                        {
+                            // Check if the URL with an anchor leads to the same page as the previous URL
+                            var prevUri = new Uri(url);
+                            var currUri = new Uri(newUrl);
+                            if (prevUri.PathAndQuery == currUri.PathAndQuery && prevUri.Fragment != currUri.Fragment)
+                            {
+                                continue;
+                            }
+
+                            if (newUrl.EndsWith("/"))
+                            {
+                                urls.Add(newUrl);
+                            }
+                            else
+                            {
+                                urls.Add(newUrl + "/");
+                            }
+
+                            //urls.Add(newUrl);
+                            FindUrlsRecursive(newUrl, urls, visitedUrls);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to retrieve URL {url}: {ex.Message}");
+            }
+        }
+
+        public List<string> UniqueCrawlURL(List<string> listCrawl, List<string> listSitemap)
         {
             Console.WriteLine(Environment.NewLine);
             List<string> listUniqueCrawlURL = listCrawl.Except(listSitemap).ToList();

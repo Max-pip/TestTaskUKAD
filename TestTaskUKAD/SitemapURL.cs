@@ -17,7 +17,13 @@ namespace TestTaskUKAD
             try
             {
                 Console.WriteLine();
-                string sitemapURL = userURL + "/sitemap.xml";
+
+                string url = userURL;
+
+                Uri uri = new Uri(url);
+
+                string sitemapURL = $"{uri.Scheme}://{uri.Authority}/sitemap.xml";
+                //string sitemapURL = userURL + "/sitemap.xml";
 
                 WebClient wc = new WebClient();
 
@@ -48,7 +54,7 @@ namespace TestTaskUKAD
             return listSitemap;
         }
 
-        public List<string> UniqueSitemapURL(List<string> listSitemap, HashSet<string> listCrawl)
+        public List<string> UniqueSitemapURL(List<string> listSitemap, List<string> listCrawl)
         {
             Console.WriteLine(Environment.NewLine);
             List<string> listUniqueSitemapURL = listSitemap.Except(listCrawl).ToList();

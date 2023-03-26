@@ -18,12 +18,12 @@ namespace TestTaskUKAD
             {
                 Console.WriteLine();
 
-                string url = userURL;
 
-                Uri uri = new Uri(url);
+                Uri baseUri = new Uri(userURL);
+                string sitemapPath = "/sitemap.xml";
 
-                string sitemapURL = $"{uri.Scheme}://{uri.Authority}/sitemap.xml";
-                //string sitemapURL = userURL + "/sitemap.xml";
+                Uri sitemapUri = new Uri(baseUri, sitemapPath);
+                string sitemapURL = sitemapUri.ToString();
 
                 WebClient wc = new WebClient();
 

@@ -15,14 +15,10 @@ namespace TestTaskUKAD
             int urlCount = 1;
             CrawlURL crawl = new CrawlURL();
             List<string> listCrawl = crawl.FindUrls(userURL);
-            Console.WriteLine("Urls FOUNDED BY CRAWLING THE WEBSITE");
-            Console.WriteLine(string.Join(Environment.NewLine, listCrawl.Select(a => $"{urlCount++}) {a}")));
 
             urlCount = 1;
             SitemapURL sitemapURL = new SitemapURL();
             List<string> listSitemap = sitemapURL.GetSitemapURLs(userURL);
-            Console.WriteLine("Urls FOUNDED IN SITEMAP THE WEBSITE");
-            Console.WriteLine(string.Join(Environment.NewLine, listSitemap.Select(a => $"{urlCount++}) {a}")));
 
             ResponseTiming timing = new ResponseTiming();
             

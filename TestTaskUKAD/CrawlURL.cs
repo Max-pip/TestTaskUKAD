@@ -48,12 +48,15 @@ namespace TestTaskUKAD
 
                     if (!string.IsNullOrEmpty(newUrl))
                     {
-                        var uri = new Uri(new Uri(url), newUrl);
-                        newUrl = uri.AbsoluteUri;
+                        Uri uri;
+                        if (Uri.TryCreate(newUrl, UriKind.Relative, out uri))
+                        {
+                            var absoluteUri = new Uri(new Uri(url), uri);
+                            newUrl = absoluteUri.AbsoluteUri;
+                        }
 
                         if (newUrl.StartsWith(url) && !visitedUrls.Contains(newUrl))
                         {
-                            // Check if the URL with an anchor leads to the same page as the previous URL
                             var prevUri = new Uri(url);
                             var currUri = new Uri(newUrl);
                             if (prevUri.PathAndQuery == currUri.PathAndQuery && prevUri.Fragment != currUri.Fragment)
@@ -70,7 +73,6 @@ namespace TestTaskUKAD
                                 urls.Add(newUrl + "/");
                             }
 
-                            //urls.Add(newUrl);
                             FindUrlsRecursive(newUrl, urls, visitedUrls);
                         }
                     }

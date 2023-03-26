@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,17 +12,42 @@ namespace TestTaskUKAD
 {
     public class ResponseTiming
     {
-        public void ResponseTime(List<string> listUnionUrls)
+        public void ResponseTime(List<string> listUnionUrls) 
         {
             int urlCount = 1;
-            HttpClient client = new HttpClient();
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            foreach (string urls in listUnionUrls)
+            var responseTimes = new Dictionary<string, long>();
+
+            foreach (var url in listUnionUrls)
             {
-                double responseTimeMs = client.GetAsync(urls).ContinueWith(task => stopwatch.Elapsed.TotalMilliseconds).Result;
-                Console.WriteLine($"{urlCount++}) Response time for {urls} - {responseTimeMs} ms");
+                if (!Uri.TryCreate(url, UriKind.Absolute, out Uri absoluteUrl))
+                {
+                    continue;
+                }
+
+                var request = WebRequest.Create(absoluteUrl);
+                var stopwatch = new Stopwatch();
+
+                try
+                {
+                    stopwatch.Start();
+                    var response = request.GetResponse();
+                    stopwatch.Stop();
+
+                    responseTimes[absoluteUrl.AbsoluteUri] = stopwatch.ElapsedMilliseconds;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to retrieve URL {absoluteUrl}: {ex.Message}");
+                }
             }
-            stopwatch.Stop();
+
+            var sortedUrls = responseTimes.OrderBy(kvp => kvp.Value)
+                                         .Select(kvp => kvp.Key);
+
+            foreach (var url in sortedUrls)
+            {
+                Console.WriteLine($"{urlCount++}){url} - {responseTimes[url]} ms");
+            }
         }
     }
 }
